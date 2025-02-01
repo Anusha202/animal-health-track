@@ -69,7 +69,7 @@ const VaccineReject = () => {
       {/* Main Content */}
       <div className="flex-1 p-8 ml-[250px]">
         <h1 className="text-3xl text-blue-700 pt-8 pb-4 font-bold">
-          Vaccine Suggestions for {animalType} ({breed})
+          Vaccine Suggestions for 
         </h1>
 
         {/* Animal Type and Breed Selection */}
