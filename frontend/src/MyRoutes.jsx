@@ -29,6 +29,7 @@ import AddVaccine from './admin/AddVaccine';
 import AdminMessage from './admin/AdminMessage';
 import MessageView from './layout/MessageView';
 import UploadForm from './admin/UploadForm';
+import VaccineReject from './admin/VaccineReject';
 
 const MyRoutes = () => {
   return (
@@ -64,6 +65,7 @@ const MyRoutes = () => {
         <Route path="/admin/adminmessage" element={<AdminMessage />} />
         <Route path="/admin/messageview/:id" element={<MessageView />} />
         <Route path="/admin/benchmark" element={<UploadForm />} />
+        <Route path="/admin/vaccinereject" element={<VaccineReject />} />
       </Routes>
     </Router>
   );

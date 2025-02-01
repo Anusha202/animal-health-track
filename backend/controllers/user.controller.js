@@ -74,9 +74,11 @@ export const verifyEmail = async (req, res) => {
     user.verificationToken = undefined;
     user.verificationTokenExpiresAt = undefined;
     await user.save();
+
     await sendWelcomeEmail(user.email, user.name);
     return res.status(200).json({
-      success: true, message: "Email Verified Succesfully",
+      success: true,
+      message: "Email Verified Succesfully",
       user: {
         ...user._doc,
         password: undefined,
@@ -93,7 +95,8 @@ export const login = async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400)
+      return res
+        .status(400)
         .json({ success: false, message: "User Not Found. Please register" });
     }
     const isPasswordValid = await bcryptjs.compare(password, user.password);
