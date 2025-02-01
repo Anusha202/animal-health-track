@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+*{
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    font-family: "Fira Sans Condensed", sans-serif;
+    scroll-behavior: smooth;
+  }
+
+  .ram {
+    background-image:  radial-gradient( circle farthest-corner at 24.8% 93.8%, rgba(215,153,238,0.5) 44%, rgba(254, 254, 108,0.5) 90% );
+    background-position: center;
+    background-size: cover;
+    height: 37vh;
+  }
+  .img1:hover {
+    transform: scale(1.05);
+    transition: 0.4s;
+}
+
+.img2:hover {
+    transform: scale(1.05);
+    transition: 0.4s;
+}
+
+.img3:hover {
+    transform: scale(1.05);
+    transition: 0.4s;
+}
+
+.img4:hover {
+    transform: scale(1.05);
+    transition: 0.4s;
+}
+
+.notification {
+  position: relative;
+}
+
+.notification .fa-bell {
+  font-size: 24px; /* Adjust the size of the bell icon */
+  color: black; /* Change the color of the bell icon */
+  cursor: pointer;
+}
+
+.notification-count {
+  position: absolute;
+  top: -22px;
+  right: -8px;
+  background-color: red;
+  color: white;
+  border-radius: 50%;
+  font-size: 16px;
+  padding: 1px 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+
+  
+  
+
