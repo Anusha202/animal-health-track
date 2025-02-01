@@ -20,7 +20,7 @@ export const getAllVaccines = async () => {
   }
 };
 
-// Add a new vaccine
+
 export const addVaccine = async (newVaccine) => {
   try {
     console.log("Sending vaccine data:", newVaccine); // Debugging: Log the payload being sent

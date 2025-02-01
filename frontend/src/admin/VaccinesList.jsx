@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FaSyringe } from "react-icons/fa";
-import AdminSidebar from "../layout/AdminSidebar";  // Import your Sidebar component
+import AdminSidebar from "../layout/AdminSidebar"; // Import your Sidebar component
 
 const API = "http://localhost:5001/api";
 
@@ -33,7 +33,7 @@ const VaccinePage = () => {
       {/* Main Content */}
       <div className="flex-1 p-8 ml-[250px]"> {/* ml-[250px] to leave space for sidebar */}
         <h1 className="text-3xl text-blue-700 pt-8 pb-4 font-bold">
-          
+          Vaccine List
         </h1>
 
         <div className="flex flex-col justify-center items-center p-4">
@@ -51,12 +51,8 @@ const VaccinePage = () => {
                 <table className="table-auto w-full text-sm">
                   <thead>
                     <tr className="bg-blue-100">
-                      <th className="py-4 px-6 text-left text-blue-800">
-                        Vaccine Name
-                      </th>
-                      <th className="py-4 px-6 text-left text-blue-800">
-                        Animal Type
-                      </th>
+                      <th className="py-4 px-6 text-left text-blue-800">Vaccine Name</th>
+                      <th className="py-4 px-6 text-left text-blue-800">Animal Type</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -71,12 +67,12 @@ const VaccinePage = () => {
                               <FaSyringe className="text-orange-600 text-xl" />
                             </div>
                             <span className="font-semibold text-gray-800">
-                              {vaccine.vaccine_name}
+                              {vaccine.vaccine_name || "Unknown Vaccine"} {/* Fallback for missing data */}
                             </span>
                           </div>
                         </td>
                         <td className="py-3 px-6 text-gray-700">
-                          {vaccine.animal_type}
+                          {vaccine.animal_type?.animal_type || "Unknown Type"} {/* Fallback for missing data */}
                         </td>
                       </tr>
                     ))}
