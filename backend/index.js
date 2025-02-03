@@ -13,7 +13,8 @@ import breedRouter from "./routes/breedroute.js"
 import dailyrecordRouter from "./routes/dailyrecord.route.js"
 import reportRouter from "./routes/healthroute.js"
 import emailRouter from './routes/emailroute.js'//app config
-import animalBenchmarkRoutes from './routes/benchmarkroute.js'
+import benchmarkRouter from './routes/benchmark.route.js'
+
 dotenv.config();
 
 const app = express();
@@ -44,6 +45,7 @@ app.use("/api/breed",breedRouter)
 app.use("/api/useranimal",userAnimalRouter)
 app.use("/api/daily",dailyrecordRouter)
 app.use("/api/report",reportRouter)
+app.use('/api/benchmark', benchmarkRouter);
 
 
 // // Configure Nodemailer transporter
@@ -145,9 +147,6 @@ app.use("/api/report",reportRouter)
 //     res.status(500).json({ error: 'Error fetching notifications' });
 //   }
 // });
-
-
-app.use('/api/animal-benchmarks', animalBenchmarkRoutes);
 
 app.use("/api/send-email", emailRouter);
 // app.use('/public/upload',express.static('public/upload'))
