@@ -271,3 +271,35 @@ function calculateNextVaccinationDate(vaccine, age) {
 
     return nextVaccinationDate.toISOString().split('T')[0]; // Return the next vaccination date in YYYY-MM-DD format
 }
+// controllers/vaccineController.js
+// import { Vaccine } from "../models/vaccineModel.js";
+import { Vaccine } from "../models/vaccine.model.js";
+
+export const createVaccine = async (req, res) => {
+  const { vaccineName, animalType, breeds, effectiveness } = req.body;
+
+  try {
+    // Create a new vaccine object
+    const newVaccine = new Vaccine({
+      vaccine_name: vaccineName,
+      animal_type: animalType,
+      breeds: breeds,
+      effectiveness: effectiveness, // Array of effectiveness ranges
+    });
+
+    // Save the vaccine to the database
+    await newVaccine.save();
+
+    // Send a success response
+    res.status(201).json({
+      message: "Vaccine added successfully!",
+      vaccine: newVaccine,
+    });
+  } catch (error) {
+    console.error("Error creating vaccine:", error.message);
+    res.status(500).json({
+      message: "Failed to create vaccine",
+      error: error.message,
+    });
+  }
+};

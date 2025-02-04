@@ -1,102 +1,87 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../layout/AdminSidebar";
-import Select from "react-select";
+import { useNavigate } from "react-router-dom";
 
-const API = "http://localhost:5001/api";
+const API = "http://localhost:5001/api"; // Assuming the API base URL
 
 const AdminAnimal = () => {
-  const [showModal, setShowModal] = useState(false);
+  const [showAddAnimalModal, setShowAddAnimalModal] = useState(false); // State for showing the Add Animal Modal
   const [animals, setAnimals] = useState([]);
-  const [newAnimal, setNewAnimal] = useState({ animal_type: "", breeds: [] });
-  const [editAnimal, setEditAnimal] = useState(null);
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
-
-  const breedOptions = {
-    cow: [
-      { label: "Jersey", value: "jersey" },
-      { label: "Holstein", value: "holstein" },
-      { label: "Sahiwal", value: "sahiwal" },
-    ],
-    dog: [
-      { label: "Labrador", value: "labrador" },
-      { label: "Beagle", value: "beagle" },
-      { label: "German Shepherd", value: "german_shepherd" },
-    ],
-    chicken: [
-      { label: "Rhode Island Red", value: "rhode_island_red" },
-      { label: "Leghorn", value: "leghorn" },
-      { label: "Plymouth Rock", value: "plymouth_rock" },
-    ],
-  };
+  const [newAnimalType, setNewAnimalType] = useState(''); // New animal type input
+  const [newBreeds, setNewBreeds] = useState(''); // New breed input (comma separated)
+  const [error, setError] = useState("");  // Error message state
+  const navigate = useNavigate(); // Hook for navigation
 
   useEffect(() => {
-    axios.get(`${API}/animal/getallanimal`).then((response) => {
-      setAnimals(response.data.data);
-    }).catch((error) => {
-      console.error("Error fetching animals:", error);
-    });
+    // Fetching all animals (this will include breeds)
+    axios.get(`${API}/animal/getallanimal`)
+      .then((response) => {
+        setAnimals(response.data.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching animals:", error);
+      });
   }, []);
 
-  const handleModalClose = () => {
-    setShowModal(false);
-    setEditAnimal(null);
-    setNewAnimal({ animal_type: "", breeds: [] });
-    setError("");
+  // Function to add breed via backend API
+  const addBreed = async (breedName, animalTypeId) => {
+    try {
+      const response = await axios.post(`${API}/breed/addbreed`, {
+        breed_name: breedName,
+        animal_type: animalTypeId,
+      });
+      return response.data; // Return the response data if successful
+    } catch (error) {
+      console.error("Error adding breed:", error);
+      return { error: "Error adding breed" };
+    }
+  };
+
+  const handleAddAnimal = async () => {
+    if (!newAnimalType || !newBreeds) {
+      setError("Animal type and breed(s) are required.");
+      return;
+    }
+
+    // Convert the breeds string into an array (split by commas and trim whitespace)
+    const breedList = newBreeds.split(',').map(breed => breed.trim());
+
+    try {
+      // Send the new animal type to the backend API
+      const response = await axios.post(`${API}/animal/addanimal`, {
+        animal_type: newAnimalType,
+      });
+
+      if (response.data.success) {
+        // If successful, create breeds and associate them with the animal type
+        const animalTypeId = response.data.data._id; // Get the newly created animal type ID
+
+        for (let breed of breedList) {
+          const breedResponse = await addBreed(breed, animalTypeId);
+          if (breedResponse.error) {
+            setError(`Failed to add breed: ${breed}`);
+            return;
+          }
+        }
+
+        // If all breeds are added successfully, close the modal and clear the input fields
+        setShowAddAnimalModal(false);
+        setNewAnimalType("");
+        setNewBreeds("");
+        setError("");  // Clear any previous errors
+      } else {
+        setError(response.data.message || "Failed to add animal type.");
+      }
+    } catch (error) {
+      setError("An error occurred while adding the animal type and breeds.");
+      console.error("Error adding animal type:", error);
+    }
   };
 
   const handleEdit = (animal) => {
-    setEditAnimal(animal);
-    const selectedAnimalType = animal.animal_type.toLowerCase();
-    const availableBreeds = breedOptions[selectedAnimalType] || [];
-    const selectedBreeds = animal.breeds.map((breed) => ({
-      label: breed.breed_name,
-      value: breed.breed_name.toLowerCase(),
-    }));
-    
-    // Filter out already selected breeds from the dropdown options
-    const filteredBreeds = availableBreeds.filter(
-      (breed) => !selectedBreeds.some((selected) => selected.value === breed.value)
-    );
-    
-    setNewAnimal({
-      animal_type: selectedAnimalType,
-      breeds: selectedBreeds,
-    });
-    setShowModal(true);
-  };
-
-  const handleUpdateAnimal = () => {
-    if (!newAnimal.animal_type || !newAnimal.breeds.length) {
-      setError("All fields are required.");
-      return;
-    }
-    
-    const updatedAnimals = animals.map((animal) =>
-      animal._id === editAnimal._id
-        ? { 
-            ...animal, 
-            animal_type: newAnimal.animal_type, 
-            breeds: newAnimal.breeds.map((breed) => ({ breed_name: breed.label })) 
-          }
-        : animal
-    );
-    setAnimals(updatedAnimals);
-    handleModalClose();
-  };
-
-  const handleDelete = (id) => {
-    setAnimals(animals.filter((animal) => animal._id !== id));
-  };
-
-  const handleInputChange = (e) => {
-    setNewAnimal({ ...newAnimal, [e.target.name]: e.target.value });
-  };
-
-  const handleBreedChange = (selectedOptions) => {
-    setNewAnimal({ ...newAnimal, breeds: selectedOptions || [] });
+    // Navigate to the update category page with the animal's ID
+    navigate(`/admin/update-category/${animal._id}`);
   };
 
   return (
@@ -104,7 +89,15 @@ const AdminAnimal = () => {
       <AdminSidebar />
       <div className="flex-1 p-4 ml-[250px]">
         <h2 className="text-2xl font-semibold mb-4">Animals</h2>
-        <button onClick={() => setShowModal(true)} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 mb-4">Add Animal</button>
+
+        {/* Add Animal Button */}
+        <button
+          onClick={() => setShowAddAnimalModal(true)}
+          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 mb-4"
+        >
+          Add Animal Type
+        </button>
+
         <table className="w-full border-collapse border border-gray-200">
           <thead>
             <tr className="bg-gray-100">
@@ -121,42 +114,68 @@ const AdminAnimal = () => {
                 <td className="px-4 py-2">{animal.animal_type}</td>
                 <td className="px-4 py-2">{animal.breeds.map((breed) => breed.breed_name).join(", ")}</td>
                 <td className="px-4 py-2">
-                  <button onClick={() => handleEdit(animal)} className="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 mr-2">Edit</button>
-                  <button onClick={() => handleDelete(animal._id)} className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600">Delete</button>
+                  <button
+                    onClick={() => handleEdit(animal)} // Handle Edit and navigate to update-category page
+                    className="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 mr-2"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(animal._id)}
+                    className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
+                  >
+                    Delete
+                  </button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        {showModal && (
+
+        {/* Modal for Adding Animal Type */}
+        {showAddAnimalModal && (
           <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center">
             <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-              <h3 className="text-xl font-semibold mb-4">{editAnimal ? "Edit Animal" : "Add New Animal"}</h3>
+              <h3 className="text-xl font-semibold mb-4">Add New Animal Type</h3>
               {error && <p className="text-red-500 mb-4">{error}</p>}
-              <form onSubmit={(e) => { e.preventDefault(); editAnimal ? handleUpdateAnimal() : handleAddAnimal(); }}>
-                <label className="block mb-2">Animal Type</label>
-                <select 
-                  name="animal_type" 
-                  value={newAnimal.animal_type} 
-                  onChange={handleInputChange} 
-                  className="w-full border rounded-lg px-4 py-2"
-                >
-                  <option value="">Select an animal type</option>
-                  {Object.keys(breedOptions).map((type) => (
-                    <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>
-                  ))}
-                </select>
-                <label className="block mt-4 mb-2">Breeds</label>
-                <Select 
-                  isMulti 
-                  options={breedOptions[newAnimal.animal_type] || []} 
-                  value={newAnimal.breeds} 
-                  onChange={handleBreedChange} 
-                  className="w-full"
+              <form onSubmit={(e) => { e.preventDefault(); handleAddAnimal(); }}>
+                {/* Animal Type Name Field */}
+                <label className="block mb-2">Animal Type Name</label>
+                <input
+                  type="text"
+                  value={newAnimalType}
+                  onChange={(e) => setNewAnimalType(e.target.value)}
+                  placeholder="Enter animal type"
+                  className="w-full border rounded-lg px-4 py-2 mb-4"
+                  required
                 />
+
+                {/* Breeds Field */}
+                <label className="block mb-2">Breed(s)</label>
+                <input
+                  type="text"
+                  value={newBreeds}
+                  onChange={(e) => setNewBreeds(e.target.value)}
+                  placeholder="Enter breed names (comma separated)"
+                  className="w-full border rounded-lg px-4 py-2 mb-4"
+                  required
+                />
+
+                {/* Modal Action Buttons */}
                 <div className="flex justify-between mt-4">
-                  <button type="button" onClick={handleModalClose} className="bg-gray-500 text-white px-4 py-2 rounded-md">Cancel</button>
-                  <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-md">{editAnimal ? "Update Animal" : "Add Animal"}</button>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddAnimalModal(false)}
+                    className="bg-gray-500 text-white px-4 py-2 rounded-md"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md"
+                  >
+                    Add Animal Type
+                  </button>
                 </div>
               </form>
             </div>

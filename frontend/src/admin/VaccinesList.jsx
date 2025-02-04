@@ -13,7 +13,7 @@ const VaccinePage = () => {
   useEffect(() => {
     const fetchVaccines = async () => {
       try {
-        const response = await axios.get(`${API}/vaccine/getallvaccines`);
+        const response = await axios.get(`${API}/vaccine/getallvaccine`);
         setVaccines(response.data);
         setLoading(false);
       } catch (err) {

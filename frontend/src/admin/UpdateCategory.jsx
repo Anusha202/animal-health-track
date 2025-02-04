@@ -1,150 +1,111 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 
 const API = "http://localhost:5001/api";
 
 const UpdateCategory = () => {
-  const { id } = useParams();
+  const { id } = useParams(); 
+  const location = useLocation();
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    animalType: "",
-    breeds: "",
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  
+  const [animalType, setAnimalType] = useState("");
+  const [breeds, setBreeds] = useState([]);
+  const [newBreed, setNewBreed] = useState("");
 
   useEffect(() => {
-    const fetchCategoryData = async () => {
-      try {
-        // Fetch animal data using /getanimals/:id
-        const response = await axios.get(`${API}/animal/getanimals/${id}`, { withCredentials: true });
-        
-        if (response.data.success) {
-          const { animal_type, breeds } = response.data.data;
-          
-          // Populate formData with the fetched animal type and breed names
-          setFormData({
-            animalType: animal_type || "",
-            breeds: breeds ? breeds.map(breed => breed.breed_name).join(", ") : "",
-          });
-        } else {
-          setError("Animal category not found.");
-        }
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load category data.");
+    if (location.state?.animal) {
+      // Prefill form with data passed from DeleteCategory
+      const { animal_type, breeds } = location.state.animal;
+      setAnimalType(animal_type);
+      setBreeds(breeds || []);
+    } else {
+      // Fetch from API if no state is available
+      axios.get(`${API}/animal/${id}`)
+        .then((res) => {
+          setAnimalType(res.data.animal_type);
+          setBreeds(res.data.breeds || []);
+        })
+        .catch((err) => console.error("Error fetching animal:", err));
+    }
+  }, [id, location.state]);
+
+  const handleUpdate = async () => {
+    try {
+      const response = await axios.put(`${API}/animal/update/${id}`, {
+        animal_type: animalType,
+        breeds,
+      });
+
+      if (response.data.success) {
+        alert("Animal updated successfully!");
+        navigate("/admin/delete-category");
+      } else {
+        alert("Failed to update animal.");
       }
-    };
-
-    fetchCategoryData();
-  }, [id]); // Dependency on id, ensuring it fetches data whenever the id changes
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    } catch (error) {
+      console.error("Error updating animal:", error);
+    }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
-
-    const { animalType, breeds } = formData;
-
-    // Validate fields
-    if (!animalType || !breeds) {
-      setError("All fields are required.");
-      return;
+  const handleAddBreed = () => {
+    if (newBreed) {
+      setBreeds([...breeds, { breed_name: newBreed }]);
+      setNewBreed("");
     }
+  };
 
-    const breedList = breeds.split(",").map((breed) => breed.trim());
-
-    const updatedData = {
-      animal_type: animalType,
-      breeds: breedList,
-    };
-
-    setLoading(true);
-    try {
-      const response = await axios.put(`${API}/animal/update/${id}`, updatedData, {
-        withCredentials: true,
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-      if (response.data.success) {
-        alert("Category updated successfully!");
-        navigate("/admin/add-category");
-      } else {
-        setError(response.data.error || "An unexpected error occurred.");
-      }
-    } catch (err) {
-      console.error(err);
-      setError("An unexpected error occurred.");
-    } finally {
-      setLoading(false);
-    }
+  const handleRemoveBreed = (index) => {
+    setBreeds(breeds.filter((_, i) => i !== index));
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-50 to-blue-100 flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-lg bg-white p-6 rounded-lg shadow-xl">
-        <h1 className="text-3xl font-bold pb-6 text-center text-blue-700">
-          Update Category
-        </h1>
-        {error && <p className="text-red-600 text-center mb-4">{error}</p>}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label
-              htmlFor="animalType"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Animal Type
-            </label>
-            <input
-              type="text"
-              id="animalType"
-              name="animalType"
-              value={formData.animalType}
-              onChange={handleChange}
-              className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-              placeholder="Enter animal type"
-            />
-          </div>
+    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h2 className="text-xl font-semibold mb-4">Update Animal Type</h2>
 
-          <div>
-            <label
-              htmlFor="breeds"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Breeds (comma separated)
-            </label>
-            <input
-              type="text"
-              id="breeds"
-              name="breeds"
-              value={formData.breeds}
-              onChange={handleChange}
-              className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-              placeholder="Enter breeds, separated by commas"
-            />
-          </div>
+        <label className="block mb-2">Animal Type</label>
+        <input
+          type="text"
+          value={animalType}
+          onChange={(e) => setAnimalType(e.target.value)}
+          className="w-full border rounded-lg px-4 py-2 mb-4"
+        />
 
-          <button
-            type="submit"
-            className={`w-full px-6 py-3 rounded-lg shadow-md text-white transition-all ${
-              loading
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-blue-500 hover:bg-blue-600"
-            }`}
-            disabled={loading}
-          >
-            {loading ? "Updating..." : "Update Category"}
+        <h3 className="text-lg font-semibold mb-2">Breeds</h3>
+        <ul>
+          {breeds.map((breed, index) => (
+            <li key={index} className="flex justify-between items-center mb-2">
+              {breed.breed_name}
+              <button
+                onClick={() => handleRemoveBreed(index)}
+                className="text-red-500"
+              >
+                ❌
+              </button>
+            </li>
+          ))}
+        </ul>
+
+        <input
+          type="text"
+          value={newBreed}
+          onChange={(e) => setNewBreed(e.target.value)}
+          placeholder="Enter breed name"
+          className="w-full border rounded-lg px-4 py-2 mb-2"
+        />
+        <button onClick={handleAddBreed} className="bg-blue-600 text-white px-4 py-2 rounded-md mb-4 w-full">
+          Add Breed
+        </button>
+
+        <div className="flex justify-between">
+          <button onClick={() => navigate("/admin/delete-category")} className="bg-gray-500 text-white px-4 py-2 rounded-md">
+            Cancel
           </button>
-        </form>
+          <button onClick={handleUpdate} className="bg-green-600 text-white px-4 py-2 rounded-md">
+            Update
+          </button>
+        </div>
       </div>
     </div>
   );

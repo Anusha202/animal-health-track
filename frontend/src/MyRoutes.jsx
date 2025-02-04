@@ -30,6 +30,7 @@ import AdminMessage from './admin/AdminMessage';
 import MessageView from './layout/MessageView';
 import UploadForm from './admin/UploadForm';
 import VaccineReject from './admin/VaccineReject';
+import DeleteCategory from './admin/DeleteCategory';
 
 const MyRoutes = () => {
   return (
@@ -57,7 +58,7 @@ const MyRoutes = () => {
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/category" element={<AdminCategory />} />
         <Route path="/admin/add-category" element={<AddCategory />} />
-        <Route path="/admin/update-category" element={<UpdateCategory />} />
+        <Route path="/admin/update-category/:id" element={<UpdateCategory />} />
         <Route path="/admin/add-vaccine" element={<AddVaccine />} />
         <Route path="/admin/vaccines" element={<VaccinesList />} />
         <Route path="/admin/fileupload" element={<FileUpload />} />
@@ -66,6 +67,7 @@ const MyRoutes = () => {
         <Route path="/admin/messageview/:id" element={<MessageView />} />
         <Route path="/admin/benchmark" element={<UploadForm />} />
         <Route path="/admin/vaccinereject" element={<VaccineReject />} />
+        <Route path="/admin/delete" element={<DeleteCategory />} />
       </Routes>
     </Router>
   );

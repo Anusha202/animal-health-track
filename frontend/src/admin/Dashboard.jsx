@@ -18,7 +18,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchVaccines = async () => {
       try {
-        const response = await axios.get(`${API}/vaccine/getallvaccines`);
+        const response = await axios.get(`${API}/vaccine/getallvaccine`);
         
         console.log("Fetched Vaccines Data:", response.data); // Debugging API response
 
