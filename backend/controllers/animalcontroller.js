@@ -42,35 +42,23 @@ import { Breed } from "../models/breed.model.js";
 export const addAnimal = async (req, res) => {
   const { animal_type } = req.body;
 
-  // Check if animal type already exists
-  let animal = await AnimalCategory.findOne({ animal_type });
-  if (animal) {
-    return res.status(400).json({ error: "Animal already exists" });
+  try {
+    // Check if the animal already exists (case insensitive)
+    let existingAnimal = await AnimalCategory.findOne({
+      animal_type: { $regex: new RegExp(`^${animal_type}$`, "i") },
+    });
+
+    if (existingAnimal) {
+      return res.status(400).json({ success: false, message: "Animal already exists" });
+    }
+
+    const newAnimal = new AnimalCategory({ animal_type });
+    await newAnimal.save();
+
+    res.status(201).json({ success: true, data: newAnimal });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
-
-  // if (breed_ids) {
-  //   const validBreeds = await Promise.all(
-  //     breed_ids.map(async (breedId) => {
-  //       let breed = await Breed.findById(breedId);
-  //       if (!breed) {
-  //         breed = await Breed.create({ breed_name: breedId });  
-  //       }
-  //       return breed;
-  //     })
-  //   );
-  // }
-
-  // Create the animal
-  animal = await AnimalCategory.create({
-    animal_type,
-    // breed
-  });
-
-  if (!animal) {
-    return res.status(400).json({ error: "Something went wrong" });
-  }
-
-  res.status(201).json(animal); // Respond with the newly created animal
 };
 
 

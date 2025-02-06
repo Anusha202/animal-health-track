@@ -54,89 +54,90 @@
 //   }
 // };
 
-import { Benchmark } from "../models/benchmark.model.js";
+// import { Benchmark } from "../models/benchmark.model.js";
 
-// Create a new benchmark (with validation)
-export const createBenchmark = async (req, res) => {
-  try {
-    const { animalType, breed } = req.body;
+// // Create a new benchmark (with validation)
+// export const createBenchmark = async (req, res) => {
+//   try {
+//     const { animalType, breed } = req.body;
 
-    // Check if the benchmark already exists
-    const existingBenchmark = await Benchmark.findOne({ animalType, breed });
-    if (existingBenchmark) {
-      return res
-        .status(400)
-        .json({
-          message: "Benchmark already exists for this animal type and breed.",
-        });
-    }
+//     // Check if the benchmark already exists
+//     const existingBenchmark = await Benchmark.findOne({ animalType, breed });
+//     if (existingBenchmark) {
+//       return res
+//         .status(400)
+//         .json({
+//           message: "Benchmark already exists for this animal type and breed.",
+//         });
+//     }
 
-    const newBenchmark = new Benchmark(req.body);
-    await newBenchmark.save();
-    res
-      .status(201)
-      .json({ message: "Benchmark added successfully!", data: newBenchmark });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+//     const newBenchmark = new Benchmark(req.body);
+//     await newBenchmark.save();
+//     res
+//       .status(201)
+//       .json({ message: "Benchmark added successfully!", data: newBenchmark });
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };
 
-// Get all benchmarks
-export const getAllBenchmarks = async (req, res) => {
-  try {
-    const benchmarks = await Benchmark.find();
-    res.status(200).json(benchmarks);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+// // Get all benchmarks
+// export const getAllBenchmarks = async (req, res) => {
+//   try {
+//     const benchmarks = await Benchmark.find();
+//     res.status(200).json(benchmarks);
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };
 
-// Get a benchmark by ID
-export const getBenchmarkById = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const benchmark = await Benchmark.findById(id);
-    if (!benchmark) {
-      return res.status(404).json({ message: "Benchmark not found" });
-    }
-    res.status(200).json(benchmark);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+// // Get a benchmark by ID
+// export const getBenchmarkById = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const benchmark = await Benchmark.findById(id);
+//     if (!benchmark) {
+//       return res.status(404).json({ message: "Benchmark not found" });
+//     }
+//     res.status(200).json(benchmark);
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };
 
-// Update a benchmark (with validation)
-export const updateBenchmark = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const updatedBenchmark = await Benchmark.findByIdAndUpdate(id, req.body, {
-      new: true,
-      // runValidators: true,
-    });
-    if (!updatedBenchmark) {
-      return res.status(404).json({ message: "Benchmark not found" });
-    }
-    res
-      .status(200)
-      .json({
-        message: "Benchmark updated successfully",
-        data: updatedBenchmark,
-      });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
 
-// Delete a benchmark
-export const deleteBenchmark = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const deletedBenchmark = await Benchmark.findByIdAndDelete(id);
-    if (!deletedBenchmark) {
-      return res.status(404).json({ message: "Benchmark not found" });
-    }
-    res.status(200).json({ message: "Benchmark deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+// // Update a benchmark (with validation)
+// export const updateBenchmark = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const updatedBenchmark = await Benchmark.findByIdAndUpdate(id, req.body, {
+//       new: true,
+//       // runValidators: true,
+//     });
+//     if (!updatedBenchmark) {
+//       return res.status(404).json({ message: "Benchmark not found" });
+//     }
+//     res
+//       .status(200)
+//       .json({
+//         message: "Benchmark updated successfully",
+//         data: updatedBenchmark,
+//       });
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };
+
+// // Delete a benchmark
+// export const deleteBenchmark = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const deletedBenchmark = await Benchmark.findByIdAndDelete(id);
+//     if (!deletedBenchmark) {
+//       return res.status(404).json({ message: "Benchmark not found" });
+//     }
+//     res.status(200).json({ message: "Benchmark deleted successfully" });
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };

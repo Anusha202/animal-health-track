@@ -1,18 +1,29 @@
-import mongoose from "mongoose";
-const { ObjectId } = mongoose.Schema;
+// import mongoose from "mongoose";
+// const { ObjectId } = mongoose.Schema;
 
-const animalCategorySchema = new mongoose.Schema({
-  animal_type: {
-    type: String,
-    required: true,
-  },
-  breeds: [{ 
-    type: ObjectId, 
-    ref: 'Breed' 
-  }],
+// const animalCategorySchema = new mongoose.Schema({
+//   animal_type: {
+//     type: String,
+//     required: true,
+//   },
+//   breeds: [{ 
+//     type: ObjectId, 
+//     ref: 'Breed' 
+//   }],
+// });
+
+// export const AnimalCategory = mongoose.model("AnimalCategory", animalCategorySchema);
+
+
+import mongoose from "mongoose";
+
+const AnimalCategorySchema = new mongoose.Schema({
+  animal_type: { type: String, required: true, unique: true },
+  breeds: [{ type: mongoose.Schema.Types.ObjectId, ref: "Breed" }] // Ensure this exists
 });
 
-export const AnimalCategory = mongoose.model("AnimalCategory", animalCategorySchema);
+export const AnimalCategory = mongoose.model("AnimalCategory", AnimalCategorySchema);
+
 
 
 

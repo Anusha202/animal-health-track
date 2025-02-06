@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+const API = "http://localhost:5001/api";
 
 // API function to send vaccine data to the backend
 export const addVaccine = async (newVaccine) => {
   try {
-    console.log("Sending vaccine data:", newVaccine); // Debugging: Log the payload being sent
+    console.log("Sending vaccine data:", newVaccine); 
 
     const response = await fetch(`${API}/vaccine/addvaccine`, {
       method: "POST",
@@ -73,7 +74,7 @@ const App = () => {
     try {
       const response = await addVaccine(newVaccine);
       console.log("Vaccine added successfully:", response);
-      // Optionally, reset form fields or show a success message
+      
     } catch (error) {
       console.error("Error adding vaccine:", error.message);
     }

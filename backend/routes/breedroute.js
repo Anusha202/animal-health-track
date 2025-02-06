@@ -1,9 +1,9 @@
 import express from "express";
-import { createBreed, getAllBreeds } from "../controllers/breedcontroller.js";
+import { addBreed,  getAllBreeds } from "../controllers/breedcontroller.js";
 
 const router = express.Router();
 
-router.post("/addbreed", createBreed);
+router.post("/addbreed", addBreed);
 router.get("/getbreed", getAllBreeds);
 
 export default router;
