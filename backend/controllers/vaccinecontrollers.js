@@ -145,37 +145,37 @@ export const getVaccineByName = (req, res) => {
 };
 
 // Add a new vaccine
-export const addVaccine =async (req, res) => {
-    const {  vaccine_name, animal_type, age_range, frequency, duration } = req.body;
+// export const addVaccine =async (req, res) => {
+//     const {  vaccine_name, animal_type, age_range, frequency, duration } = req.body;
 
-    // Validate input
-    if ( !vaccine_name || !animal_type || !age_range || !frequency || !duration) {
-        return res.status(400).json({ error: 'All fields are required' });
-    }
+//     // Validate input
+//     if ( !vaccine_name || !animal_type || !age_range || !frequency || !duration) {
+//         return res.status(400).json({ error: 'All fields are required' });
+//     }
 
-    // Check if vaccine with the same ID already exists
-    const existingVaccine = vaccineData.find(v => v.vaccine_name === vaccine_name);
-    if (existingVaccine) {
-        return res.status(400).json({ error: 'Vaccine with this ID already exists' });
-    }
+//     // Check if vaccine with the same ID already exists
+//     const existingVaccine = vaccineData.find(v => v.vaccine_name === vaccine_name);
+//     if (existingVaccine) {
+//         return res.status(400).json({ error: 'Vaccine with this ID already exists' });
+//     }
 
-    // Add the new vaccine to the vaccineData array
-    const newVaccine = new Vaccine({
+//     // Add the new vaccine to the vaccineData array
+//     const newVaccine = new Vaccine({
         
-        vaccine_name,
-        animal_type,
-        age_range, // Expecting { min: number, max: number }
-        frequency,
-        duration,
-    });
-    await newVaccine.save();
-    // vaccineData.push(newVaccine);
+//         vaccine_name,
+//         animal_type,
+//         age_range, // Expecting { min: number, max: number }
+//         frequency,
+//         duration,
+//     });
+//     await newVaccine.save();
+//     // vaccineData.push(newVaccine);
 
-    res.status(201).json({
-        message: 'Vaccine added successfully',
-        vaccine: newVaccine,
-    });
-};
+//     res.status(201).json({
+//         message: 'Vaccine added successfully',
+//         vaccine: newVaccine,
+//     });
+// };
 
 // Helper function to convert years to months
 const yearsToMonths = (years) => years * 12;
@@ -273,24 +273,50 @@ function calculateNextVaccinationDate(vaccine, age) {
 }
 // controllers/vaccineController.js
 // import { Vaccine } from "../models/vaccineModel.js";
-import { Vaccine } from "../models/vaccine.model.js";
 
-export const createVaccine = async (req, res) => {
-  const { vaccineName, animalType, breeds, effectiveness } = req.body;
+import mongoose from "mongoose";
+ // Assuming Vaccine model
+import { AnimalCategory } from "../models/animal.model.js"; // Assuming AnimalCategory model
+import { Breed } from "../models/breed.model.js"; // Assuming Breed model
 
+export const addVaccine = async (req, res) => {
   try {
-    // Create a new vaccine object
-    const newVaccine = new Vaccine({
-      vaccine_name: vaccineName,
-      animal_type: animalType,
-      breeds: breeds,
-      effectiveness: effectiveness, // Array of effectiveness ranges
+    const { vaccineName, animalType, breeds, effectiveness } = req.body;
+
+    // Validate animalType as ObjectId
+    if (!mongoose.Types.ObjectId.isValid(animalType)) {
+      return res.status(400).json({ error: "Invalid ObjectId for animalType" });
+    }
+
+    // Validate each breed as ObjectId
+    const breedObjectIds = breeds.map((breed) => {
+      if (!mongoose.Types.ObjectId.isValid(breed)) {
+        return res.status(400).json({ error: `Invalid ObjectId for breed: ${breed}` });
+      }
+      return breed; // Since breeds are already ObjectId, no need to convert
     });
 
-    // Save the vaccine to the database
+    // Check if the animalType and all breeds exist in the database (optional, for data integrity)
+    const animal = await AnimalCategory.findById(animalType);
+    if (!animal) {
+      return res.status(404).json({ error: "Animal type not found" });
+    }
+
+    const breedDocs = await Breed.find({ '_id': { $in: breedObjectIds } });
+    if (breedDocs.length !== breedObjectIds.length) {
+      return res.status(404).json({ error: "One or more breeds not found" });
+    }
+
+    // Create the new vaccine document
+    const newVaccine = new Vaccine({
+      vaccine_name: vaccineName,
+      animal_type: animalType, 
+      breeds: breedObjectIds, 
+      effectiveness,
+    });
+
     await newVaccine.save();
 
-    // Send a success response
     res.status(201).json({
       message: "Vaccine added successfully!",
       vaccine: newVaccine,
@@ -303,3 +329,4 @@ export const createVaccine = async (req, res) => {
     });
   }
 };
+

@@ -7,7 +7,7 @@ import AdminSidebar from "../layout/AdminSidebar";
 const AdminRoute = () => {
   const { isAuthenticated, user } = useUserStore();
   console.log("role:", user);
-
+// console.log("authenticat")
   return isAuthenticated && user?.role === 1 ? (
     <>
       <AdminSidebar />

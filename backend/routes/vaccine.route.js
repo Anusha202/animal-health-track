@@ -10,6 +10,7 @@ import {
   acceptVaccine
 } from "../controllers/vaccine.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js"
+import { addVaccine } from '../controllers/vaccinecontrollers.js';
 
 const router = express.Router();
 
@@ -26,7 +27,7 @@ router.get('/recommend/:userAnimalId',verifyToken, recommendVaccines);
 
 
 // router.post("/addvaccine", createVaccine); // Create a new vaccine
-router.post("/addvaccine", createVaccine);
+router.post("/addvaccine", addVaccine);
 
 router.get("/getallvaccine", getAllVaccines); // Get all vaccines
 router.get("/getbyid/:id", getVaccineById); // Get a specific vaccine by ID

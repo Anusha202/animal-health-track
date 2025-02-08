@@ -7,7 +7,6 @@ const MessageView = () => {
     let [message, setMessage] = useState(null)
 
     //To fetch all message
-
     useEffect(() => {
         getmessage(id)
         .then((data) => {
@@ -23,7 +22,6 @@ const MessageView = () => {
             console.log("Error fetching message", error)
         })
     }, [id])
-
   return (
     <div className=''>
         <div className="pt-12">

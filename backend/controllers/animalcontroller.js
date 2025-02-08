@@ -151,17 +151,42 @@ export const getAnimalById = async (req, res) => {
 // };
 
 
+// export const updateAnimal = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const { animal_type, breeds } = req.body;
+
+//     // Validate input
+//     if (!animal_type || !breeds || breeds.length === 0) {
+//       return res.status(400).json({ error: "Animal type and breeds are required." });
+//     }
+
+//     // Find and update the animal category
+//     const updatedAnimal = await AnimalCategory.findByIdAndUpdate(
+//       id,
+//       { animal_type, breeds },
+//       { new: true }
+//     );
+
+//     if (!updatedAnimal) {
+//       return res.status(404).json({ error: "Animal not found." });
+//     }
+
+//     res.status(200).json(updatedAnimal); // Return the updated animal data
+//   } catch (err) {
+//     console.error("Error updating animal:", err);
+//     res.status(500).json({ error: "Internal server error." });
+//   }
+// };
 export const updateAnimal = async (req, res) => {
   try {
     const { id } = req.params;
     const { animal_type, breeds } = req.body;
 
-    // Validate input
     if (!animal_type || !breeds || breeds.length === 0) {
       return res.status(400).json({ error: "Animal type and breeds are required." });
     }
 
-    // Find and update the animal category
     const updatedAnimal = await AnimalCategory.findByIdAndUpdate(
       id,
       { animal_type, breeds },
@@ -172,7 +197,7 @@ export const updateAnimal = async (req, res) => {
       return res.status(404).json({ error: "Animal not found." });
     }
 
-    res.status(200).json(updatedAnimal); // Return the updated animal data
+    res.status(200).json({ success: true, data: updatedAnimal }); // ✅ FIX: Return `success: true`
   } catch (err) {
     console.error("Error updating animal:", err);
     res.status(500).json({ error: "Internal server error." });

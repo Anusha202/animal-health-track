@@ -5,7 +5,7 @@ import AdminSidebar from "../layout/AdminSidebar"; // Import your Sidebar compon
 
 const API = "http://localhost:5001/api";
 
-const VaccinePage = () => {
+const VaccinesList = () => {
   const [vaccines, setVaccines] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -87,4 +87,4 @@ const VaccinePage = () => {
   );
 };
 
-export default VaccinePage;
+export default VaccinesList;

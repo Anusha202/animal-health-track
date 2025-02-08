@@ -1,111 +1,79 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
+import AdminSidebar from "../layout/AdminSidebar";
 
 const API = "http://localhost:5001/api";
 
 const UpdateCategory = () => {
-  const { id } = useParams(); 
-  const location = useLocation();
-  const navigate = useNavigate();
-  
   const [animalType, setAnimalType] = useState("");
-  const [breeds, setBreeds] = useState([]);
-  const [newBreed, setNewBreed] = useState("");
+  const [breeds, setBreeds] = useState("");
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
+  const location = useLocation();
+  const animal = location.state?.animal;
 
   useEffect(() => {
-    if (location.state?.animal) {
-      // Prefill form with data passed from DeleteCategory
-      const { animal_type, breeds } = location.state.animal;
-      setAnimalType(animal_type);
-      setBreeds(breeds || []);
-    } else {
-      // Fetch from API if no state is available
-      axios.get(`${API}/animal/${id}`)
-        .then((res) => {
-          setAnimalType(res.data.animal_type);
-          setBreeds(res.data.breeds || []);
-        })
-        .catch((err) => console.error("Error fetching animal:", err));
+    if (animal) {
+      setAnimalType(animal.animal_type);
+      setBreeds(animal.breeds.map((b) => b.breed_name).join(", "));
     }
-  }, [id, location.state]);
+  }, [animal]);
 
   const handleUpdate = async () => {
+    if (!animalType || !breeds) {
+      setError("Animal type and breed(s) are required.");
+      return;
+    }
+
+    const breedList = breeds.split(",").map((b) => b.trim());
     try {
-      const response = await axios.put(`${API}/animal/update/${id}`, {
+      const response = await axios.put(`${API}/animal/update/${animal._id}`, {
         animal_type: animalType,
-        breeds,
+        breeds: breedList,
       });
 
       if (response.data.success) {
-        alert("Animal updated successfully!");
-        navigate("/admin/delete-category");
+        navigate("/admin/manage-animals");
       } else {
-        alert("Failed to update animal.");
+        setError(response.data.message || "Failed to update animal type.");
       }
     } catch (error) {
-      console.error("Error updating animal:", error);
+      setError("An error occurred while updating the animal type and breeds.");
+      console.error("Error updating animal type:", error);
     }
-  };
-
-  const handleAddBreed = () => {
-    if (newBreed) {
-      setBreeds([...breeds, { breed_name: newBreed }]);
-      setNewBreed("");
-    }
-  };
-
-  const handleRemoveBreed = (index) => {
-    setBreeds(breeds.filter((_, i) => i !== index));
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-xl font-semibold mb-4">Update Animal Type</h2>
+    <div className="flex min-h-screen">
+      <AdminSidebar />
+      <div className="flex-1 p-4 ml-[250px]">
+        <h2 className="text-2xl font-semibold mb-4">Update Animal Type</h2>
+        {error && <p className="text-red-500 mb-4">{error}</p>}
+        <form onSubmit={(e) => { e.preventDefault(); handleUpdate(); }}>
+          <label className="block mb-2">Animal Type Name</label>
+          <input
+            type="text"
+            value={animalType}
+            onChange={(e) => setAnimalType(e.target.value)}
+            className="w-full border rounded-lg px-4 py-2 mb-4"
+            required
+          />
 
-        <label className="block mb-2">Animal Type</label>
-        <input
-          type="text"
-          value={animalType}
-          onChange={(e) => setAnimalType(e.target.value)}
-          className="w-full border rounded-lg px-4 py-2 mb-4"
-        />
+          <label className="block mb-2">Breed(s)</label>
+          <input
+            type="text"
+            value={breeds}
+            onChange={(e) => setBreeds(e.target.value)}
+            className="w-full border rounded-lg px-4 py-2 mb-4"
+            required
+          />
 
-        <h3 className="text-lg font-semibold mb-2">Breeds</h3>
-        <ul>
-          {breeds.map((breed, index) => (
-            <li key={index} className="flex justify-between items-center mb-2">
-              {breed.breed_name}
-              <button
-                onClick={() => handleRemoveBreed(index)}
-                className="text-red-500"
-              >
-                ❌
-              </button>
-            </li>
-          ))}
-        </ul>
-
-        <input
-          type="text"
-          value={newBreed}
-          onChange={(e) => setNewBreed(e.target.value)}
-          placeholder="Enter breed name"
-          className="w-full border rounded-lg px-4 py-2 mb-2"
-        />
-        <button onClick={handleAddBreed} className="bg-blue-600 text-white px-4 py-2 rounded-md mb-4 w-full">
-          Add Breed
-        </button>
-
-        <div className="flex justify-between">
-          <button onClick={() => navigate("/admin/delete-category")} className="bg-gray-500 text-white px-4 py-2 rounded-md">
-            Cancel
-          </button>
-          <button onClick={handleUpdate} className="bg-green-600 text-white px-4 py-2 rounded-md">
-            Update
-          </button>
-        </div>
+          <div className="flex justify-between mt-4">
+            <button type="button" onClick={() => navigate("/admin/manage-animals")} className="bg-gray-500 text-white px-4 py-2 rounded-md">Cancel</button>
+            <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-md">Update</button>
+          </div>
+        </form>
       </div>
     </div>
   );

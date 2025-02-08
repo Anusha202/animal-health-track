@@ -151,7 +151,7 @@ const Navbar = () => {
                     <>
                     <li>
                       <Link
-                        to="/admin/dashboards"
+                        to="/admin/dashboard"
                         className="block px-4 py-2 hover:bg-gray-100"
                       >
                         Dashboard

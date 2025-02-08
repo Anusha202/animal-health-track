@@ -22,7 +22,7 @@ const UploadForm = () => {
 
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/animal-benchmarks/upload",
+        "http://localhost:5001/api/animal-benchmarks/upload",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },

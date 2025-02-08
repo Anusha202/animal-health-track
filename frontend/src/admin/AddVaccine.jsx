@@ -1,181 +1,196 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import AdminSidebar from "../layout/AdminSidebar";
+import { useNavigate } from "react-router-dom";
+import Select from "react-select";
+
 const API = "http://localhost:5001/api";
 
-// API function to send vaccine data to the backend
-export const addVaccine = async (newVaccine) => {
-  try {
-    console.log("Sending vaccine data:", newVaccine); 
-
-    const response = await fetch(`${API}/vaccine/addvaccine`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(newVaccine), // Send the new vaccine data as JSON
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || "Failed to add vaccine");
-    }
-
-    const data = await response.json();
-    return data; // Return the newly added vaccine data
-  } catch (error) {
-    console.error("Error adding vaccine:", error.message); // Log the error message
-    throw error;
-  }
-};
-
-const App = () => {
-  // States to store the vaccine data and effectiveness ranges
-  const [vaccineName, setVaccineName] = useState('');
-  const [animalType, setAnimalType] = useState('');
-  const [breeds, setBreeds] = useState('');
+const AdminVaccine = () => {
+  const [showAddVaccineModal, setShowAddVaccineModal] = useState(false);
+  const [vaccineName, setVaccineName] = useState("");
+  const [animalType, setAnimalType] = useState("");
+  const [breedsList, setBreedsList] = useState([]);
+  const [selectedBreeds, setSelectedBreeds] = useState([]);
   const [effectivenessData, setEffectivenessData] = useState([]);
-  const [showMoreIndex, setShowMoreIndex] = useState(2);  // Track the next age range index to show
+  const [animals, setAnimals] = useState([]);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-  // Generate 5-month intervals from 0 to 180 months
-  const generateAgeRanges = () => {
-    const ranges = [];
-    for (let i = 0; i <= 180; i += 5) {
-      ranges.push({
-        minAge: i,
-        maxAge: i + 5,
-        effectivenessPercentage: 0, // Default value for effectiveness
-      });
-    }
-    return ranges;
-  };
-
-  // Initialize the age ranges when the component mounts
   useEffect(() => {
-    setEffectivenessData(generateAgeRanges());
+    const fetchAnimals = async () => {
+      try {
+        const response = await axios.get(`${API}/animal/getallanimal`);
+        setAnimals(response.data.data);
+      } catch (error) {
+        console.error("Error fetching animals:", error);
+      }
+    };
+    fetchAnimals();
   }, []);
 
-  // Handle change for effectiveness percentage
-  const handleEffectivenessChange = (index, value) => {
+  useEffect(() => {
+    const fetchBreeds = async () => {
+      if (!animalType) return;
+      try {
+        const response = await axios.get(`${API}/breed/getbreed/${animalType}`);
+        setBreedsList(response.data.data || []);
+        setSelectedBreeds([]);
+      } catch (error) {
+        console.error("Error fetching breeds:", error);
+      }
+    };
+    fetchBreeds();
+  }, [animalType]);
+
+  const handleEffectivenessChange = (index, field, value) => {
+    let sanitizedValue = value;
+    if (field === "minAge" || field === "maxAge") {
+      sanitizedValue = Math.max(0, Math.min(70, Number(value)));
+    } else if (field === "effectivenessPercentage") {
+      sanitizedValue = Math.max(0, Math.min(100, Number(value)));
+    }
     const updatedData = [...effectivenessData];
-    updatedData[index].effectivenessPercentage = value;
+    updatedData[index][field] = sanitizedValue;
     setEffectivenessData(updatedData);
   };
 
-  // Handle form submission
+  const addEffectivenessRow = () => {
+    setEffectivenessData([
+      ...effectivenessData,
+      { minAge: "", maxAge: "", effectivenessPercentage: "" },
+    ]);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const newVaccine = {
       vaccineName,
       animalType,
-      breeds,
+      breeds: selectedBreeds.map((breed) => breed.value),
       effectiveness: effectivenessData,
     };
 
     try {
-      const response = await addVaccine(newVaccine);
-      console.log("Vaccine added successfully:", response);
-      
+      await axios.post(`${API}/vaccine/addvaccine`, newVaccine);
+      setShowAddVaccineModal(false);
     } catch (error) {
-      console.error("Error adding vaccine:", error.message);
+      setError("Error adding vaccine");
+      console.error("Error adding vaccine:", error);
     }
   };
 
-  const handleShowMore = () => {
-    setShowMoreIndex((prevIndex) => prevIndex + 1);
-  };
-
   return (
-    <div className="min-h-screen bg-gray-100 p-6 flex justify-center items-center">
-      <div className="w-full max-w-2xl bg-white p-6 rounded-lg shadow-xl">
-        <h1 className="text-3xl font-semibold text-center text-green-600 mb-6">Add vaccines</h1>
+    <div className="flex min-h-screen">
+      <AdminSidebar />
+      <div className="flex-1 p-4 ml-[250px]">
+        <h2 className="text-2xl font-semibold mb-4">Vaccines</h2>
+        <button
+          onClick={() => setShowAddVaccineModal(true)}
+          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 mb-4"
+        >
+          Add Vaccine
+        </button>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Vaccine Name */}
-          <div>
-            <label className="block text-lg font-medium text-gray-700">Vaccine Name</label>
-            <input
-              type="text"
-              value={vaccineName}
-              onChange={(e) => setVaccineName(e.target.value)}
-              className="mt-2 p-3 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-400"
-              required
-            />
-          </div>
+        {showAddVaccineModal && (
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+              <h3 className="text-xl font-semibold mb-4">Add New Vaccine</h3>
+              {error && <p className="text-red-500 mb-4">{error}</p>}
+              <form onSubmit={handleSubmit}>
+                <label className="block mb-2">Vaccine Name</label>
+                <input
+                  type="text"
+                  value={vaccineName}
+                  onChange={(e) => setVaccineName(e.target.value)}
+                  className="w-full border rounded-lg px-4 py-2 mb-4"
+                  required
+                />
 
-          {/* Animal Type */}
-          <div>
-            <label className="block text-lg font-medium text-gray-700">Animal Type</label>
-            <input
-              type="text"
-              value={animalType}
-              onChange={(e) => setAnimalType(e.target.value)}
-              className="mt-2 p-3 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-400"
-              required
-            />
-          </div>
+                <label className="block mb-2">Animal Type</label>
+                <select
+                  value={animalType}
+                  onChange={(e) => setAnimalType(e.target.value)}
+                  className="w-full border rounded-lg px-4 py-2 mb-4"
+                  required
+                >
+                  <option value="">Select Animal Type</option>
+                  {animals.map((animal) => (
+                    <option key={animal._id} value={animal._id}>
+                      {animal.animal_type}
+                    </option>
+                  ))}
+                </select>
 
-          {/* Breed */}
-          <div>
-            <label className="block text-lg font-medium text-gray-700">Breed</label>
-            <input
-              type="text"
-              value={breeds}
-              onChange={(e) => setBreeds(e.target.value)}
-              className="mt-2 p-3 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-400"
-              required
-            />
-          </div>
+                <label className="block mb-2">Breeds</label>
+                <Select
+                  isMulti
+                  options={
+                    breedsList.length > 0
+                      ? breedsList.map((breed) => ({
+                          value: breed._id,
+                          label: breed.breed_name,
+                        }))
+                      : []
+                  }
+                  value={selectedBreeds}
+                  onChange={setSelectedBreeds}
+                  className="w-full border rounded-lg px-4 py-2 mb-4"
+                />
 
-          {/* Effectiveness Data */}
-          <div>
-            <h3 className="text-xl font-semibold text-gray-700 mb-4">Effectiveness Data</h3>
-            {effectivenessData.slice(0, showMoreIndex * 2).map((range, index) => (
-              <div key={index} className="space-y-4 mb-4">
-                <div className="flex justify-between">
-                  <label className="text-sm text-gray-600">Min Age (Months): {range.minAge}</label>
-                  <label className="text-sm text-gray-600">Max Age (Months): {range.maxAge}</label>
+                <h3 className="text-lg font-semibold mb-2">Effectiveness Data</h3>
+                {effectivenessData.map((range, index) => (
+                  <div key={index} className="mb-3 p-2 rounded border border-gray-300 bg-gray-50">
+                    <input
+                      type="number"
+                      placeholder="Min Age (Months)"
+                      value={range.minAge}
+                      onChange={(e) => handleEffectivenessChange(index, "minAge", e.target.value)}
+                      className="w-full px-2 py-1 border border-gray-300 rounded-md mb-2"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Max Age (Months)"
+                      value={range.maxAge}
+                      onChange={(e) => handleEffectivenessChange(index, "maxAge", e.target.value)}
+                      className="w-full px-2 py-1 border border-gray-300 rounded-md mb-2"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Effectiveness (%)"
+                      value={range.effectivenessPercentage}
+                      onChange={(e) =>
+                        handleEffectivenessChange(index, "effectivenessPercentage", e.target.value)
+                      }
+                      className="w-full px-2 py-1 border border-gray-300 rounded-md"
+                      required
+                    />
+                  </div>
+                ))}
+
+                <button type="button" onClick={addEffectivenessRow} className="text-blue-600 mt-4 hover:underline">
+                  + Add Effectiveness Data
+                </button>
+
+                <div className="flex justify-between mt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddVaccineModal(false)}
+                    className="bg-gray-500 text-white px-4 py-2 rounded-md"
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-md">
+                    Add Vaccine
+                  </button>
                 </div>
-                <div>
-                  <label className="block text-lg font-medium text-gray-700">Effectiveness (%)</label>
-                  <input
-                    type="number"
-                    value={range.effectivenessPercentage}
-                    onChange={(e) =>
-                      handleEffectivenessChange(index, e.target.value)
-                    }
-                    min="0"
-                    max="100"
-                    className="mt-2 p-3 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-400"
-                    required
-                  />
-                </div>
-              </div>
-            ))}
-
-            {/* Show More Button */}
-            {showMoreIndex * 2 < effectivenessData.length && (
-              <button
-                type="button"
-                onClick={handleShowMore}
-                className="text-blue-600 mt-4 hover:underline"
-              >
-                Show More
-              </button>
-            )}
+              </form>
+            </div>
           </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            className="w-full bg-green-600 text-white p-3 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400"
-          >
-            Save Vaccine
-          </button>
-        </form>
+        )}
       </div>
     </div>
   );
 };
 
-export default App;
+export default AdminVaccine;

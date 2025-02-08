@@ -1,4 +1,4 @@
-let API = "http://localhost:5000/api";
+let API = "http://localhost:5001/api";
 
 //add daily record
 export const addDaily = (add, id) => {

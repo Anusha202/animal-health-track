@@ -1,6 +1,6 @@
 // import { API } from "../../config";
 
-let API = "http://localhost:5000/api";
+let API = "http://localhost:5001/api";
 export const register = (user) => {
   return fetch(`${API}/user/signup`, {
     method: "POST",

@@ -1,4 +1,4 @@
-let API = "http://localhost:5000/api";
+let API = "http://localhost:5001/api";
 
 // Generate weekly health report
 export const generateWeeklyReport = (id) => {
