@@ -41,6 +41,7 @@ import AdminMessage from './admin/AdminMessage';
 import MessageView from './layout/MessageView';
 import DeleteCategory from './admin/DeleteCategory';
 import UpdateCategory from './admin/UpdateCategory';
+import ShowBenchmark from './admin/ShowBenchmark';
 
 
 
@@ -80,6 +81,7 @@ const MyRoutes = () => {
         {/* <Route path="excel" element={<ExcelUpload />} /> */}
         <Route path="adminmessage" element={<AdminMessage />} />
         <Route path="messageview/:id" element={<MessageView />} />
+        <Route path="benchmarks" element={<ShowBenchmark />} />
         {/* <Route path="benchmark" element={<UploadForm />} /> */}
         {/* <Route path="vaccinereject" element={<VaccineReject />} /> */}
         <Route path="delete" element={<DeleteCategory />} />
