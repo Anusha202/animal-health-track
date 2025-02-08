@@ -1,20 +1,19 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import AdminSidebar from "../layout/AdminSidebar";
-import { useNavigate } from "react-router-dom";
-import { addBreed } from "../api/Breed";
 
 const API = "http://localhost:5001/api";
 
 const AdminAnimal = () => {
   const [showAddAnimalModal, setShowAddAnimalModal] = useState(false);
   const [animals, setAnimals] = useState([]);
-  const [newAnimalType, setNewAnimalType] = useState('');
-  const [newBreeds, setNewBreeds] = useState('');
+  const [newAnimalType, setNewAnimalType] = useState("");
+  const [newBreeds, setNewBreeds] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  // Fetch all animals with their breeds
+  // Fetch all animals
   const fetchAnimals = async () => {
     try {
       const response = await axios.get(`${API}/animal/getallanimal`);
@@ -28,20 +27,6 @@ const AdminAnimal = () => {
     fetchAnimals();
   }, []);
 
-  // Function to add a breed
-  const addBreed = async (breedName, animalTypeId) => {
-    try {
-      const response = await axios.post(`${API}/breed/addbreed`, {
-        breed_name: breedName,
-        animal_type: animalTypeId,
-      });
-      return response.data;
-    } catch (error) {
-      console.error("Error adding breed:", error);
-      return { error: "Error adding breed" };
-    }
-  };
-
   // Function to add an animal type along with breeds
   const handleAddAnimal = async () => {
     if (!newAnimalType || !newBreeds) {
@@ -49,7 +34,7 @@ const AdminAnimal = () => {
       return;
     }
 
-    const breedList = newBreeds.split(",").map(breed => breed.trim());
+    const breedList = newBreeds.split(",").map((breed) => breed.trim());
 
     try {
       const response = await axios.post(`${API}/animal/addanimal`, {
@@ -60,7 +45,10 @@ const AdminAnimal = () => {
         const animalTypeId = response.data.data._id;
 
         for (let breed of breedList) {
-          await addBreed(breed, animalTypeId);
+          await axios.post(`${API}/breed/addbreed`, {
+            breed_name: breed,
+            animal_type: animalTypeId,
+          });
         }
 
         fetchAnimals();
@@ -77,8 +65,21 @@ const AdminAnimal = () => {
     }
   };
 
-  const handleEdit = (animal) => {
-    navigate(`/admin/update-category/${animal._id}`);
+  // Function to delete an animal type
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this animal type?")) {
+      try {
+        const response = await axios.delete(`${API}/animal/delete/${id}`);
+        if (response.data.success) {
+          setAnimals(animals.filter((animal) => animal._id !== id));
+        } else {
+          alert("Failed to delete animal type.");
+        }
+      } catch (error) {
+        console.error("Error deleting animal type:", error);
+        alert("An error occurred while deleting the animal type.");
+      }
+    }
   };
 
   return (
@@ -113,13 +114,13 @@ const AdminAnimal = () => {
                 </td>
                 <td className="px-4 py-2">
                   <button
-                    onClick={() => handleEdit(animal)}
+                    onClick={() => navigate(`/admin/update-category/${animal._id}`)}
                     className="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 mr-2"
                   >
                     Edit
                   </button>
                   <button
-                    onClick={() => console.log("Delete function here")}
+                    onClick={() => handleDelete(animal._id)}
                     className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
                   >
                     Delete
@@ -146,7 +147,6 @@ const AdminAnimal = () => {
                   className="w-full border rounded-lg px-4 py-2 mb-4"
                   required
                 />
-
                 <label className="block mb-2">Breed(s)</label>
                 <input
                   type="text"
@@ -156,7 +156,6 @@ const AdminAnimal = () => {
                   className="w-full border rounded-lg px-4 py-2 mb-4"
                   required
                 />
-
                 <div className="flex justify-between mt-4">
                   <button type="button" onClick={() => setShowAddAnimalModal(false)} className="bg-gray-500 text-white px-4 py-2 rounded-md">Cancel</button>
                   <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-md">Add Animal Type</button>

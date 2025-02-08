@@ -34,13 +34,13 @@ export const getAllBreeds = () => {
 };
 
 // Get a specific breed by ID
-export const getBreedById = (id) => {
-  return fetch(`${API}/breed/getbreed/${id}`, {
+export const getBreedByAnimalAndId = (animalType, id) => {
+  return fetch(`${API}/breed/getbreed/${animalType}/${id}`, {
     credentials: "include", // Include cookies if needed
   })
     .then((response) => response.json())
     .catch((error) => {
-      console.error("Error fetching breed by ID:", error);
-      return { error: "Error fetching breed by ID" };
+      console.error("Error fetching breed by animal type and ID:", error);
+      return { error: "Error fetching breed by animal type and ID" };
     });
 };

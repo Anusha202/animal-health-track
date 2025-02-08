@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import AdminSidebar from "../layout/AdminSidebar";
 import { useNavigate } from "react-router-dom";
-import Select from "react-select";
 
 const API = "http://localhost:5001/api";
 
@@ -11,12 +10,13 @@ const AdminVaccine = () => {
   const [vaccineName, setVaccineName] = useState("");
   const [animalType, setAnimalType] = useState("");
   const [breedsList, setBreedsList] = useState([]);
-  const [selectedBreeds, setSelectedBreeds] = useState([]);
+  const [selectedBreed, setSelectedBreed] = useState(""); // Changed to single selection
   const [effectivenessData, setEffectivenessData] = useState([]);
   const [animals, setAnimals] = useState([]);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  // Fetch all animal types
   useEffect(() => {
     const fetchAnimals = async () => {
       try {
@@ -29,20 +29,25 @@ const AdminVaccine = () => {
     fetchAnimals();
   }, []);
 
+  // Fetch breeds based on selected animal type
   useEffect(() => {
     const fetchBreeds = async () => {
-      if (!animalType) return;
+      if (!animalType) return; // Prevent API call if animalType is not selected
+
       try {
-        const response = await axios.get(`${API}/breed/getbreed/${animalType}`);
+        const response = await axios.get(`${API}/breed/getbreedsbyanimal/${animalType}`);
+        console.log("Breeds API response:", response.data); // Debugging
         setBreedsList(response.data.data || []);
-        setSelectedBreeds([]);
+        setSelectedBreed(""); // Reset selected breed
       } catch (error) {
         console.error("Error fetching breeds:", error);
+        setBreedsList([]); // Ensure breeds list is empty on error
       }
     };
     fetchBreeds();
   }, [animalType]);
 
+  // Handle changes in effectiveness data
   const handleEffectivenessChange = (index, field, value) => {
     let sanitizedValue = value;
     if (field === "minAge" || field === "maxAge") {
@@ -50,11 +55,13 @@ const AdminVaccine = () => {
     } else if (field === "effectivenessPercentage") {
       sanitizedValue = Math.max(0, Math.min(100, Number(value)));
     }
+
     const updatedData = [...effectivenessData];
     updatedData[index][field] = sanitizedValue;
     setEffectivenessData(updatedData);
   };
 
+  // Add a new row for effectiveness data
   const addEffectivenessRow = () => {
     setEffectivenessData([
       ...effectivenessData,
@@ -62,12 +69,13 @@ const AdminVaccine = () => {
     ]);
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newVaccine = {
       vaccineName,
       animalType,
-      breeds: selectedBreeds.map((breed) => breed.value),
+      breed: selectedBreed, // Now sending a single breed
       effectiveness: effectivenessData,
     };
 
@@ -122,21 +130,20 @@ const AdminVaccine = () => {
                   ))}
                 </select>
 
-                <label className="block mb-2">Breeds</label>
-                <Select
-                  isMulti
-                  options={
-                    breedsList.length > 0
-                      ? breedsList.map((breed) => ({
-                          value: breed._id,
-                          label: breed.breed_name,
-                        }))
-                      : []
-                  }
-                  value={selectedBreeds}
-                  onChange={setSelectedBreeds}
+                <label className="block mb-2">Breed</label>
+                <select
+                  value={selectedBreed}
+                  onChange={(e) => setSelectedBreed(e.target.value)}
                   className="w-full border rounded-lg px-4 py-2 mb-4"
-                />
+                  required
+                >
+                  <option value="">Select Breed</option>
+                  {breedsList.map((breed) => (
+                    <option key={breed._id} value={breed._id}>
+                      {breed.breed_name}
+                    </option>
+                  ))}
+                </select>
 
                 <h3 className="text-lg font-semibold mb-2">Effectiveness Data</h3>
                 {effectivenessData.map((range, index) => (
