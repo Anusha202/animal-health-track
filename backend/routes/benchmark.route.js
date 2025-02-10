@@ -7,7 +7,7 @@ router.post('/addbenchmark', createBenchmark);
 router.get('/getallbenchmark', getAllBenchmarks);
 
 router.get('/getbenchmark/:id',verifyToken, getBenchmarkById);
-router.put('/updatebenchmark/:id', verifyToken,updateBenchmark);
-router.delete('/deletebenchmark/:id',verifyToken, deleteBenchmark);
+router.put('/updatebenchmark/:id', updateBenchmark);
+router.delete('/deletebenchmark/:id', deleteBenchmark);
 
 export default router;

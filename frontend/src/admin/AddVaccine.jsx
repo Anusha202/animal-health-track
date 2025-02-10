@@ -10,9 +10,11 @@ const AdminVaccine = () => {
   const [vaccineName, setVaccineName] = useState("");
   const [animalType, setAnimalType] = useState("");
   const [breedsList, setBreedsList] = useState([]);
-  const [selectedBreed, setSelectedBreed] = useState(""); // Changed to single selection
+  const [selectedBreed, setSelectedBreed] = useState("");
   const [effectivenessData, setEffectivenessData] = useState([]);
   const [animals, setAnimals] = useState([]);
+  const [vaccineList, setVaccineList] = useState([]);
+  const [selectedVaccineId, setSelectedVaccineId] = useState(null); // Store vaccine ID for edit
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -33,10 +35,8 @@ const AdminVaccine = () => {
   useEffect(() => {
     const fetchBreeds = async () => {
       if (!animalType) return; // Prevent API call if animalType is not selected
-
       try {
         const response = await axios.get(`${API}/breed/getbreedsbyanimal/${animalType}`);
-        console.log("Breeds API response:", response.data); // Debugging
         setBreedsList(response.data.data || []);
         setSelectedBreed(""); // Reset selected breed
       } catch (error) {
@@ -46,6 +46,19 @@ const AdminVaccine = () => {
     };
     fetchBreeds();
   }, [animalType]);
+
+  // Fetch all vaccines
+  useEffect(() => {
+    const fetchVaccines = async () => {
+      try {
+        const response = await axios.get(`${API}/vaccine/getvaccines`);
+        setVaccineList(response.data.data || []);
+      } catch (error) {
+        console.error("Error fetching vaccines:", error);
+      }
+    };
+    fetchVaccines();
+  }, []);
 
   // Handle changes in effectiveness data
   const handleEffectivenessChange = (index, field, value) => {
@@ -69,22 +82,50 @@ const AdminVaccine = () => {
     ]);
   };
 
-  // Handle form submission
+  // Handle form submission (Add or Edit)
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const newVaccine = {
+    const vaccineData = {
       vaccineName,
       animalType,
-      breed: selectedBreed, // Now sending a single breed
+      breed: selectedBreed,
       effectiveness: effectivenessData,
     };
 
     try {
-      await axios.post(`${API}/vaccine/addvaccine`, newVaccine);
+      if (selectedVaccineId) {
+        // Edit existing vaccine
+        await axios.put(`${API}/vaccine/updatevaccine/${selectedVaccineId}`, vaccineData);
+        setSelectedVaccineId(null); // Reset selected vaccine after edit
+      } else {
+        // Add new vaccine
+        await axios.post(`${API}/vaccine/addvaccine`, vaccineData);
+      }
       setShowAddVaccineModal(false);
+      setVaccineList((prevList) => [...prevList, vaccineData]); // Update vaccine list
     } catch (error) {
-      setError("Error adding vaccine");
-      console.error("Error adding vaccine:", error);
+      setError("Error submitting vaccine data");
+      console.error("Error submitting vaccine data:", error);
+    }
+  };
+
+  // Handle Edit button click
+  const handleEditClick = (vaccine) => {
+    setVaccineName(vaccine.vaccineName);
+    setAnimalType(vaccine.animalType);
+    setSelectedBreed(vaccine.breed);
+    setEffectivenessData(vaccine.effectiveness || []);
+    setSelectedVaccineId(vaccine._id); // Set selected vaccine for editing
+    setShowAddVaccineModal(true); // Open modal for editing
+  };
+
+  // Handle Delete button click
+  const handleDeleteClick = async (id) => {
+    try {
+      await axios.delete(`${API}/vaccine/deletevaccine/${id}`);
+      setVaccineList(vaccineList.filter((vaccine) => vaccine._id !== id)); // Remove vaccine from list
+    } catch (error) {
+      console.error("Error deleting vaccine:", error);
     }
   };
 
@@ -100,10 +141,50 @@ const AdminVaccine = () => {
           Add Vaccine
         </button>
 
+        {/* Vaccine List */}
+        <div className="mb-4">
+          <h3 className="text-xl font-semibold mb-2">Existing Vaccines</h3>
+          <table className="min-w-full bg-white border border-gray-200">
+            <thead>
+              <tr>
+                <th className="px-4 py-2 text-left">Vaccine Name</th>
+                <th className="px-4 py-2 text-left">Animal Type</th>
+                <th className="px-4 py-2 text-left">Breed</th>
+                <th className="px-4 py-2 text-left">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {vaccineList.map((vaccine) => (
+                <tr key={vaccine._id}>
+                  <td className="px-4 py-2">{vaccine.vaccineName}</td>
+                  <td className="px-4 py-2">{vaccine.animalType}</td>
+                  <td className="px-4 py-2">{vaccine.breed}</td>
+                  <td className="px-4 py-2">
+                    <button
+                      onClick={() => handleEditClick(vaccine)}
+                      className="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 mr-2"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteClick(vaccine._id)}
+                      className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
         {showAddVaccineModal && (
           <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center">
             <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-              <h3 className="text-xl font-semibold mb-4">Add New Vaccine</h3>
+              <h3 className="text-xl font-semibold mb-4">
+                {selectedVaccineId ? "Edit Vaccine" : "Add New Vaccine"}
+              </h3>
               {error && <p className="text-red-500 mb-4">{error}</p>}
               <form onSubmit={handleSubmit}>
                 <label className="block mb-2">Vaccine Name</label>
@@ -188,7 +269,7 @@ const AdminVaccine = () => {
                     Cancel
                   </button>
                   <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-md">
-                    Add Vaccine
+                    {selectedVaccineId ? "Update Vaccine" : "Add Vaccine"}
                   </button>
                 </div>
               </form>

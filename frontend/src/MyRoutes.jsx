@@ -42,6 +42,7 @@ import MessageView from './layout/MessageView';
 import DeleteCategory from './admin/DeleteCategory';
 import UpdateCategory from './admin/UpdateCategory';
 import ShowBenchmark from './admin/ShowBenchmark';
+import UpdateBenchmark from './admin/UpdateBenchmark';
 
 
 
@@ -85,6 +86,7 @@ const MyRoutes = () => {
         {/* <Route path="benchmark" element={<UploadForm />} /> */}
         {/* <Route path="vaccinereject" element={<VaccineReject />} /> */}
         <Route path="delete" element={<DeleteCategory />} />
+        <Route path="update-benchmark/:id" element={<UpdateBenchmark />} />
         </Route>
       </Routes>
     </Router>

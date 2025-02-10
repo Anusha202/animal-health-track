@@ -58,11 +58,16 @@ export const updateBenchmark = (id, benchmarkData) => {
 };
 
 // Delete a benchmark by ID
+// api/Benchmark.js
 export const deleteBenchmark = (id) => {
-  return fetch(`${API}/benchmark/deletebenchmark/${id}`, {
-    method: "DELETE",
-    credentials: "include", // Include cookies in the request
-  })
-    .then((response) => response.json())
-    .catch((error) => console.error("Error deleting benchmark:", error));
-};
+    return fetch(`${API}/benchmark/deletebenchmark/${id}`, {
+      method: "DELETE",
+      credentials: "include", // Include cookies in the request
+    })
+      .then((response) => response.json())
+      .catch((error) => {
+        console.error("Error deleting benchmark:", error);
+        return { success: false, message: "Error deleting benchmark" };
+      });
+  };
+  

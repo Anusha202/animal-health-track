@@ -131,13 +131,20 @@ export const updateBenchmark = async (req, res) => {
 // Delete a benchmark
 export const deleteBenchmark = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params; // Get the ID from the request parameters
+
+    // Try to find and delete the benchmark by ID
     const deletedBenchmark = await Benchmark.findByIdAndDelete(id);
+
+    // If no benchmark was found, return a 404 error
     if (!deletedBenchmark) {
-      return res.status(404).json({ message: "Benchmark not found" });
+      return res.status(404).json({ message: 'Benchmark not found' });
     }
-    res.status(200).json({ message: "Benchmark deleted successfully" });
+
+    // Return a success message if the deletion was successful
+    res.status(200).json({ message: 'Benchmark deleted successfully' });
   } catch (error) {
+    // If any error occurs, return a 500 internal server error
     res.status(500).json({ error: error.message });
   }
 };
