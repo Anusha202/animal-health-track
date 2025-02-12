@@ -34,6 +34,12 @@ const AdminAnimal = () => {
       return;
     }
 
+    // Validate animal type length (max 25 characters)
+    if (newAnimalType.length > 25) {
+      setError("Animal type cannot be more than 25 characters.");
+      return;
+    }
+
     const breedList = newBreeds.split(",").map((breed) => breed.trim());
 
     try {

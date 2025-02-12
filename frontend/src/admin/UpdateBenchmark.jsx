@@ -22,7 +22,7 @@ const UpdateBenchmark = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // Function to fetch the benchmark data by id when the component mounts
+
   useEffect(() => {
     const fetchBenchmarkData = async () => {
       try {
@@ -105,7 +105,7 @@ const UpdateBenchmark = () => {
       const result = await updateBenchmark(id, formData);
       if (result.success) {
         setSuccessMessage("Benchmark updated successfully!");
-        setTimeout(() => navigate("/admin/manage-benchmarks"), 2000); // Redirect after success
+        setTimeout(() => navigate("/admin/benchmarks"), 2000); // Redirect after success
       } else {
         setError(result.message || "Failed to update benchmark.");
       }
